@@ -15,7 +15,7 @@ import Data.Text (Text, pack)
 import qualified Data.Text.IO as T
 import Data.Either (rights)
 import System.Process (system)
-import System.Exit (ExitCode (..))
+import System.Exit (ExitCode (..), exitFailure)
 import Control.Applicative ((<|>))
 import Control.Monad (unless, void, forM_)
 import Control.Monad.Trans.Class (lift)
@@ -195,6 +195,11 @@ main = runStackageBuilder $ do
   lputStrLn "* stackage-multibuild"
   lputStrLn "* Printing stack version..."
   _ <- liftIO $ system "stack --version"
+  lputStrLn "* Looking for stack.yaml file..."
+  b <- liftIO $ doesFileExist "stack.yaml"
+  unless b $ do
+    lputStrLn "* No stack.yaml file found, writing default file."
+    latestLTS >>= liftIO . writeDefaultFile . LTSSnapshot
   lputStrLn "* Parsing snapshot set..."
   let fp = "stackage-multibuild.config"
   t <- liftIO $ T.readFile fp
@@ -203,11 +208,8 @@ main = runStackageBuilder $ do
     Left err -> liftIO $ print err
     Right set -> forM_ set $ \snapshot -> do
       lputStrLn $ "* Using snapshot: " ++ show snapshot
-      b <- liftIO $ doesFileExist "stack.yaml"
-      unless b $ do
-        lputStrLn "* No stack.yaml file found, writing default file."
-        latestLTS >>= liftIO . writeDefaultFile . LTSSnapshot
       code <- liftIO $ buildWith snapshot
       case code of
         ExitSuccess -> pure ()
-        _ -> fail $ "Snapshot " ++ show snapshot ++ " failed to build"
+        _ -> do lputStrLn $ "Snapshot " ++ show snapshot ++ " failed to build."
+                liftIO exitFailure
