@@ -38,3 +38,10 @@ Finally, for `lts` snapshots you can use `selected` ranges. It works like
 ```
 lts-range-selected: lts-2.0 ~ latest
 ```
+
+# Example file
+
+```
+lts-range-selected: 2.0 ~ latest
+nightly: latest
+```
