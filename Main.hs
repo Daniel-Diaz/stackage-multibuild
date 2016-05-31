@@ -195,6 +195,12 @@ snapshotset_parser = fmap S.unions $ P.many $ P.choice
       <* P.many (P.char ' ') <* P.optional P.endOfLine
     ]
 
+defaultConfigFile :: String
+defaultConfigFile = unlines
+  [ "lts-range-selected: lts-2.0 ~ latest"
+  , "nightly: latest"
+    ]
+
 lputStrLn :: MonadIO m => String -> m ()
 lputStrLn = liftIO . putStrLn
 
@@ -204,12 +210,16 @@ main = runStackageBuilder $ do
   lputStrLn "* Printing stack version..."
   _ <- liftIO $ system "stack --version"
   lputStrLn "* Looking for stack.yaml file..."
-  b <- liftIO $ doesFileExist "stack.yaml"
-  unless b $ do
+  b1 <- liftIO $ doesFileExist "stack.yaml"
+  unless b1 $ do
     lputStrLn "* No stack.yaml file found, writing default file."
     latestLTS >>= liftIO . writeDefaultFile . LTSSnapshot
   lputStrLn "* Parsing snapshot set..."
   let fp = "stackage-multibuild.config"
+  b2 <- liftIO $ doesFileExist fp
+  unless b2 $ do
+    lputStrLn $ " No " ++ fp ++ " file found, writing default file."
+    liftIO $ writeFile fp defaultConfigFile
   t <- liftIO $ T.readFile fp
   eset <- P.runParserT snapshotset_parser () fp t
   case eset of
