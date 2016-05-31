@@ -49,8 +49,16 @@ ltsSelect = fmap (uncurry LTS)
 -- Nightly 2016 5 29 = nightly-2016-05-29
 data NightlySnapshot = Nightly Word Word Word deriving (Eq, Ord)
 
+showPad :: Show a => Int -> Char -> a -> String
+showPad n c x =
+  let str = show x
+  in  replicate (n - length str) c ++ str
+
 instance Show NightlySnapshot where
-  show (Nightly y m d) = "nightly-" ++ show y ++ "-" ++ show m ++ "-" ++ show d
+  show (Nightly y m d) =
+       "nightly-" ++ show y
+    ++ "-" ++ showPad 2 '0' m
+    ++ "-" ++ showPad 2 '0' d
 
 nightly_parser :: Monad m => ParsecT Text u m NightlySnapshot
 nightly_parser = do
