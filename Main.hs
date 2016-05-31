@@ -196,7 +196,7 @@ main = runStackageBuilder $ do
   lputStrLn "* Printing stack version..."
   _ <- liftIO $ system "stack --version"
   lputStrLn "* Parsing snapshot set..."
-  let fp = "stackage-multibuild.yaml"
+  let fp = "stackage-multibuild.config"
   t <- liftIO $ T.readFile fp
   eset <- P.runParserT snapshotset_parser () fp t
   case eset of

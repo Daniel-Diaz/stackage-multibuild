@@ -3,7 +3,7 @@
 
 Build your package against different versions of stack.
 
-You need a `stackage-multibuild.yaml` file in the project directory,
+You need a `stackage-multibuild.config` file in the project directory,
 and then run `stackage-multibuild`.
 
 # Syntax
