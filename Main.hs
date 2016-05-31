@@ -218,7 +218,7 @@ main = runStackageBuilder $ do
   let fp = "stackage-multibuild.config"
   b2 <- liftIO $ doesFileExist fp
   unless b2 $ do
-    lputStrLn $ " No " ++ fp ++ " file found, writing default file."
+    lputStrLn $ "* No " ++ fp ++ " file found, writing default file."
     liftIO $ writeFile fp defaultConfigFile
   t <- liftIO $ T.readFile fp
   eset <- P.runParserT snapshotset_parser () fp t
