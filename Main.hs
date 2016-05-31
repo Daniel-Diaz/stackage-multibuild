@@ -65,7 +65,7 @@ nightly_parser = do
 getAllSnapshotsWith :: FilePath -> P.Parsec Text () a -> IO [a]
 getAllSnapshotsWith fp parser = do
   b <- doesDirectoryExist fp
-  unless b $ void $ system $ "git clone --depth=1 git@github.com:fpco/" ++ fp ++ ".git"
+  unless b $ void $ system $ "git clone --depth=1 https://github.com/fpco/" ++ fp ++ ".git"
   fs <- listDirectory fp
   removeDirectoryRecursive fp
   pure $ rights $ fmap (P.parse parser fp . pack) fs
