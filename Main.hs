@@ -136,6 +136,7 @@ defaultFile :: StackageSnapshot -> String
 defaultFile snapshot = unlines
   [ "resolver: " ++ show snapshot
   , "packages: [\".\"]"
+  , "extra-deps: []"
     ]
 
 writeDefaultFile :: StackageSnapshot -> IO ()
