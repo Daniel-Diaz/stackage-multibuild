@@ -29,12 +29,12 @@ lts: latest
 Ranges can also be used (for both `lts` and `nightly`):
 
 ```
-lts-range: 5.0 ~ latest
+lts-range: lts-5.0 ~ latest
 ```
 
 Finally, for `lts` snapshots you can use `selected` ranges. It works like
 `lts-range`, but will only use the latest snapshot of each major release.
 
 ```
-lts-range-selected: 2.0 ~ latest
+lts-range-selected: lts-2.0 ~ latest
 ```
