@@ -39,7 +39,9 @@ Finally, for `lts` snapshots you can use `selected` ranges. It works like
 lts-range-selected: lts-2.0 ~ latest
 ```
 
-# Example file
+# Default file
+
+If no `stackage-multibuild.config` file is found, this one will be used:
 
 ```
 lts-range-selected: lts-2.0 ~ latest
