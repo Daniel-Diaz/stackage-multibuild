@@ -42,6 +42,6 @@ lts-range-selected: lts-2.0 ~ latest
 # Example file
 
 ```
-lts-range-selected: 2.0 ~ latest
+lts-range-selected: lts-2.0 ~ latest
 nightly: latest
 ```
