@@ -7,7 +7,10 @@ import System.Directory
   ( listDirectory
   , doesDirectoryExist
   , doesFileExist
-  , removeDirectoryRecursive
+  , createDirectoryIfMissing
+  , withCurrentDirectory
+  , XdgDirectory (..)
+  , getXdgDirectory
     )
 import Text.Parsec (ParsecT)
 import qualified Text.Parsec as P
@@ -70,13 +73,19 @@ nightly_parser = do
   day <- word_parser
   pure $ Nightly year month day
 
+getAppDir :: IO FilePath
+getAppDir = getXdgDirectory XdgData "stackage-multibuild"
+
 getAllSnapshotsWith :: FilePath -> P.Parsec Text () a -> IO [a]
 getAllSnapshotsWith fp parser = do
-  b <- doesDirectoryExist fp
-  unless b $ void $ system $ "git clone --depth=1 https://github.com/fpco/" ++ fp ++ ".git"
-  fs <- listDirectory fp
-  removeDirectoryRecursive fp
-  pure $ rights $ fmap (P.parse parser fp . pack) fs
+  fp0 <- getAppDir
+  createDirectoryIfMissing True fp0
+  withCurrentDirectory fp0 $ do
+    b <- doesDirectoryExist fp
+    if b then void $ withCurrentDirectory fp $ system $ "git pull"
+         else void $ system $ "git clone --depth=1 https://github.com/fpco/" ++ fp ++ ".git"
+    fs <- listDirectory fp
+    pure $ rights $ fmap (P.parse parser fp . pack) fs
 
 getAllLTS :: IO [LTSSnapshot]
 getAllLTS = getAllSnapshotsWith "lts-haskell" lts_parser
