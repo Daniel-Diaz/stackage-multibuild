@@ -154,7 +154,10 @@ writeDefaultFile = writeFile "stack.yaml" . defaultFile
 buildWith :: StackageSnapshot -> IO ExitCode
 buildWith snapshot = system $
      "stack build --install-ghc --resolver " ++ show snapshot
+  ++ " --bench --no-run-benchmarks"
+  ++ " --test --no-run-tests"
   ++ " --ghc-options -fforce-recomp"
+
 type SnapshotSet = S.Set StackageSnapshot
 
 type Parser = ParsecT Text () StackageBuilder
@@ -182,23 +185,26 @@ line_parser :: (a -> StackageSnapshot)
             -> ([a] -> [a])
             -> Parser a
             -> String
-            -> Parser SnapshotSet
+            -> Parser (SnapshotSet -> SnapshotSet)
 line_parser f g h p str = do
-  _ <- P.string str
-  c <- P.anyChar
-  case c of
-    ':' -> fmap (S.singleton . f) $ spaced p
-    '-' -> do _ <- P.string "range"
-              c' <- P.anyChar
-              case c' of
-                ':' -> fmap (S.fromList . fmap f) $ spaced (parseRange p p) >>= lift . uncurry g
-                '-' -> do _ <- P.string "selected:"
-                          fmap (S.fromList . fmap f . h) $ spaced (parseRange p p) >>= lift . uncurry g
-                _ -> P.unexpected [c']
-    _ -> P.unexpected [c]
+  mop <- P.optionMaybe $ P.string "delete-"
+  let op = maybe S.union (const S.difference) mop
+  _   <- P.string str
+  c   <- P.anyChar
+  set <- case c of
+           ':' -> fmap (S.singleton . f) $ spaced p
+           '-' -> do _ <- P.string "range"
+                     c' <- P.anyChar
+                     case c' of
+                       ':' -> fmap (S.fromList . fmap f) $ spaced (parseRange p p) >>= lift . uncurry g
+                       '-' -> do _ <- P.string "selected:"
+                                 fmap (S.fromList . fmap f . h) $ spaced (parseRange p p) >>= lift . uncurry g
+                       _ -> P.unexpected [c']
+           _ -> P.unexpected [c]
+  pure $ flip op set
 
 snapshotset_parser :: Parser SnapshotSet
-snapshotset_parser = fmap S.unions $ P.many $ P.choice
+snapshotset_parser = fmap (($ S.empty) . foldr (.) id) $ P.many $ P.choice
   [ line_parser     LTSSnapshot     ltsRange ltsSelect parseLTS     "lts"
       <* P.many (P.char ' ') <* P.optional P.endOfLine
   , line_parser NightlySnapshot nightlyRange id        parseNightly "nightly"
