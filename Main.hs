@@ -157,6 +157,7 @@ buildWith snapshot = system $
   ++ " --bench --no-run-benchmarks"
   ++ " --test --no-run-tests"
   ++ " --ghc-options -fforce-recomp"
+  ++ " --verbosity warn"
 
 type SnapshotSet = S.Set StackageSnapshot
 
@@ -240,10 +241,12 @@ main = runStackageBuilder $ do
   eset <- P.runParserT snapshotset_parser () fp t
   case eset of
     Left err -> liftIO $ print err
-    Right set -> forM_ set $ \snapshot -> do
-      lputStrLn $ "* Using snapshot: " ++ show snapshot
-      code <- liftIO $ buildWith snapshot
-      case code of
-        ExitSuccess -> pure ()
-        _ -> do lputStrLn $ "Snapshot " ++ show snapshot ++ " failed to build."
-                liftIO exitFailure
+    Right set -> do
+      forM_ set $ \snapshot -> do
+        lputStrLn $ "* Using snapshot: " ++ show snapshot
+        code <- liftIO $ buildWith snapshot
+        case code of
+          ExitSuccess -> pure ()
+          _ -> do lputStrLn $ "Snapshot " ++ show snapshot ++ " failed to build."
+                  liftIO exitFailure
+      lputStrLn "* All builds successfull! :)"
